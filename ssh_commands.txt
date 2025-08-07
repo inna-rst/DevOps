@@ -1,0 +1,8 @@
+ssh-keygen -t ed25519 -C "inna@gmail.com"
+code %USERPROFILE%\.ssh\config
+ssh -T git@github.com
+git clone
+git checkout -b
+git add
+git commit -m 
+git push
