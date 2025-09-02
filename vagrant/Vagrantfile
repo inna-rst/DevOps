@@ -1,0 +1,68 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  # === 1. Глобальні налаштування для всіх ВМ === 
+  config.vm.box = "bento/ubuntu-24.04" 
+  config.vm.box_version = "202508.03.0" 
+
+  # Загальні параметри VirtualBox
+  config.vm.provider "virtualbox" do |v|
+    v.gui    = false
+    v.memory = 1024
+    v.cpus   = 1
+  end
+
+  # === 2. Загальний провіженінг (ставимо однакові пакети для всіх машин) ===
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update -y
+    apt-get install -y iputils-ping dnsutils net-tools curl vim
+  SHELL
+
+  # === 3. Опис хостів ===
+   HOSTS = {
+    "web1" => "192.168.33.10",
+    "web2" => "192.168.33.11",
+    "db"   => "192.168.33.12"
+  }
+
+  # === 4. Конфігурація кожної машини ===
+   HOSTS.each do |name, ip|
+    config.vm.define name do |machine|
+      # Базові параметри
+      machine.vm.hostname = name
+      machine.vm.network :private_network, ip: ip
+
+      # Унікальне ім'я у VirtualBox
+      machine.vm.provider "virtualbox" do |v|
+        v.name = name
+      end
+
+      # Прокидання портів (щоб не перетиналися)
+      machine.vm.network "forwarded_port", guest: 80, host: (8000 + ip.split('.').last.to_i)
+
+      # === 5. Рольовий провіженінг ===
+      if name.start_with?("web")
+        machine.vm.provision "shell", inline: <<-SHELL
+          apt-get install -y nginx
+          systemctl enable nginx
+          echo "<h1>Hello from #{name}</h1>" > /var/www/html/index.html
+        SHELL
+      elsif name == "db"
+        machine.vm.provision "shell", inline: <<-SHELL
+          apt-get install -y mysql-server
+          systemctl enable mysql
+        SHELL
+      end
+    end
+  end
+end
