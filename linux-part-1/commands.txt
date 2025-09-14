@@ -1,0 +1,239 @@
+touch myfile.txt
+
+touch file1.txt file2.txt file3.txt document.doc
+
+touch script.sh config.conf data.json
+
+ls -la
+
+stat myfile.txt
+
+touch -t 202301010000 old_file.txt
+
+sleep 2
+touch myfile.txt
+stat myfile.txt
+
+echo "Hello World from original file" > original.txt
+echo "Some configuration data" > config.txt
+echo -e "Line 1\nLine 2\nLine 3" > multiline.txt
+
+cp original.txt copy.txt
+
+cp -p original.txt copy_with_attrs.txt
+
+cp -i original.txt copy.txt
+
+mkdir test_dir
+echo "File in directory" > test_dir/inner_file.txt
+echo "Another file" > test_dir/another.txt
+
+cp -r test_dir test_dir_copy
+
+cp -u original.txt copy.txt
+
+cp -v original.txt verbose_copy.txt
+
+ls -la
+ls -la test_dir_copy/
+
+mv copy.txt renamed_file.txt
+
+mv renamed_file.txt test_dir/
+
+ls -la test_dir/
+
+mv test_dir/renamed_file.txt ./final_name.txt
+
+mv file1.txt file2.txt file3.txt test_dir/
+
+mv test_dir_copy renamed_directory
+
+mkdir destination
+mv renamed_directory destination/
+
+mv -i config.txt test_dir/
+
+mv -v multiline.txt verbose_moved.txt
+
+ls -la
+ls -la test_dir/
+ls -la destination/
+
+mkdir my_directory
+
+mkdir dir1 dir2 dir3 projects documents
+
+mkdir -p parent/child/grandchild/deepest
+
+mkdir -m 755 public_directory
+mkdir -m 700 private_directory
+
+mkdir -p project/{src,docs,tests,config}
+mkdir -p project/src/{main,utils,models}
+
+mkdir -v new_verbose_dir
+
+ls -la
+tree . 2>/dev/null || find . -type d
+
+ls -ld public_directory private_directory
+
+echo "echo "echo 'Hello from script!'" >> test_script.sh
+echo "Sensitive data" > private_file.txt
+mkdir test_folder
+echo "Some content" > test_folder/file.txt
+
+ls -la test_script.sh private_file.txt
+ls -ld test_folder
+
+chmod +x test_script.sh
+
+ls -la test_script.sh
+./test_script.sh
+
+chmod 755 test_script.sh  chmod 644 private_file.txt chmod 700 private_file.txt 
+chmod u+w private_file.txt    chmod g-r private_file.txt    chmod o-r private_file.txt    chmod a+r private_file.txt    
+chmod -R 755 test_folder/
+
+chmod +t test_folder/         chmod u+s test_script.sh      
+ls -la test_script.sh private_file.txt
+ls -ld test_folder/
+
+ls -la original.txt test_folder/
+
+id
+whoami
+
+echo "Test content" > ownership_test.txt
+
+sudo chown root:root ownership_test.txt
+
+ls -la ownership_test.txt
+
+sudo chown vagrant:vagrant ownership_test.txt
+
+sudo chown root ownership_test.txt
+
+sudo chown :root ownership_test.txt
+
+sudo chown -R vagrant:vagrant test_folder/
+
+chgrp vagrant ownership_test.txt
+
+sudo chown --reference=original.txt ownership_test.txt
+
+ls -la ownership_test.txt
+ls -la test_folder/
+
+touch delete_me.txt important.txt
+echo "Temporary data" > temp.txt
+mkdir temp_folder
+touch temp_folder/temp_file.txt
+
+rm delete_me.txt
+
+rm -i temp.txt
+
+rm -f nonexistent_file.txt  
+touch file_to_delete1.txt file_to_delete2.txt
+rm file_to_delete1.txt file_to_delete2.txt
+
+touch test1.tmp test2.tmp test3.tmp
+rm *.tmp
+
+rm -r temp_folder/
+
+mkdir -p dangerous_folder/subfolder
+touch dangerous_folder/file.txt dangerous_folder/subfolder/file.txt
+rm -rf dangerous_folder/
+
+mkdir -p careful_delete/sub
+touch careful_delete/file1.txt careful_delete/sub/file2.txt
+rm -ri careful_delete/
+
+touch verbose_delete.txt
+rm -v verbose_delete.txt
+
+ls -la final_name.txt
+rm -i final_name.txt
+
+ls -la
+
+sudo yum update -y
+sudo yum install -y mc git htop nano curl wget ncdu httpd
+sudo amazon-linux-extras enable ansible2
+sudo yum install -y ansible
+
+ps
+
+ps aux
+
+ps -ef
+
+ps auxf
+ps -ejH  
+ps aux | grep httpd
+ps aux | grep ssh
+ps aux | grep ansible
+
+ps aux --sort=-%cpu
+
+ps aux --sort=-%mem | head -10
+
+ps aux --sort=lstart
+
+ps -u vagrant
+ps -u root
+
+ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu
+
+ps aux | grep " Z "  ps aux | grep " R "  
+ps -eo pid,etime,cmd --sort=etime
+
+top
+
+htop
+
+top -p $(pgrep httpd | tr '\n' ',' | sed 's/,$//')
+
+watch "ps aux --sort=-%cpu | head -20"
+
+watch "uptime && ps aux --sort=-%cpu | head -5"
+
+curl http://localhost
+curl -I http://localhost  
+curl http://192.168.56.10
+
+sudo ss -tlnp | grep :80
+sudo netstat -tlnp | grep :80
+
+lscpu | grep -E "CPU\(s\)|Model name|MHz"
+cat /proc/loadavg
+
+stress --cpu 1 --timeout 30s
+
+stress --cpu $(nproc) --timeout 60s
+
+free -h
+
+stress --vm 1 --vm-bytes 256M --timeout 30s
+
+stress --vm 2 --vm-bytes 512M --timeout 60s
+
+stress --cpu 2 --vm 1 --vm-bytes 256M --timeout 45s
+
+stress --io 2 --hdd 1 --timeout 30s
+
+stress --cpu 2 --vm 1 --vm-bytes 256M --io 1 --hdd 1 --timeout 60s
+
+pgrep stress
+killall stress
+killall -9 stress 2>/dev/null
+
+
+sudo systemctl start httpd
+sudo systemctl stop httpd
+
+sudo tail -f /var/log/httpd/access_log
+sudo tail -f /var/log/httpd/error_log
