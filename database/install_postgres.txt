@@ -1,0 +1,32 @@
+sudo yum update -y
+
+sudo amazon-linux-extras enable postgresql13
+sudo yum clean metadata
+sudo yum install -y postgresql postgresql-server
+
+sudo postgresql-setup initdb
+
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+sudo systemctl status postgresql
+
+sudo -u postgres psql
+
+sudo nano /var/lib/pgsql/data/postgresql.conf
+# listen_addresses = '*'
+# port = 5432
+
+sudo nano /var/lib/pgsql/data/pg_hba.conf
+# local   all             all                                     md5
+# host    all             all             127.0.0.1/32           md5
+# host    all             all             ::1/128                md5
+# host    all             all             0.0.0.0/0              md5
+
+sudo systemctl restart postgresql
+
+sudo ss -tlnp | grep 5432
+
+sudo iptables -I INPUT 5 -p tcp --dport 5432 -j ACCEPT
+sudo service iptables save
+
+PGPASSWORD=student123 psql -h 192.168.33.10 -U student -d itca -c "SELECT version();"
