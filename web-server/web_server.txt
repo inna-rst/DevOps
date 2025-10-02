@@ -1,0 +1,121 @@
+sudo apt update && sudo apt upgrade -y
+sudo apt install nginx -y
+nginx -v
+sudo systemctl status nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
+sudo ufw status
+sudo ufw --force enable
+sudo ufw allow ssh
+sudo ufw allow 22/tcp
+sudo ufw allow 'Nginx Full'
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw status numbered
+sudo ufw status verbose
+sudo ss -tulnp | grep nginx
+sudo netstat -tlnp | grep nginx
+sudo apt install apache2-utils -y
+sudo mkdir -p /etc/nginx/auth
+sudo chown root:root /etc/nginx/auth
+sudo chmod 755 /etc/nginx/auth
+sudo htpasswd -c /etc/nginx/auth/.htpasswd oleh
+sudo cat /etc/nginx/auth/.htpasswd
+ls -la /etc/nginx/auth/
+sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.backup
+sudo nano /etc/nginx/sites-available/default
+sudo nginx -t
+sudo systemctl restart nginx
+sudo systemctl status nginx
+sudo tail -f /var/log/nginx/error.log
+hostname -I
+curl -4 icanhazip.com
+sudo tee /var/www/html/index.html > /dev/null <<EOF
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nginx Test Server</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .success { color: green; }
+        .info { background: #f0f0f0; padding: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="success">Nginx Working Successfully!</h1>
+        <div class="info">
+            <h3>Server Information:</h3>
+            <p><strong>Server:</strong> Nginx on Ubuntu 24.04</p>
+            <p><strong>Authentication:</strong> Basic Auth Enabled</p>
+            <p><strong>User:</strong> user</p>
+            <p><strong>Password:</strong> 12345</p>
+            <p><strong>Status Page:</strong> <a href="/status">/status</a></p>
+        </div>
+        <p>Current time: $(date)</p>
+    </div>
+</body>
+</html>
+EOF
+
+curl -I http://localhost/
+curl -u user:pass http://localhost/
+curl -u user:pass http://localhost/status
+sudo apt install certbot python3-certbot-nginx -y
+ certbot --version
+sudo mkdir -p /etc/ssl/private
+sudo mkdir -p /etc/ssl/certs
+sudo chmod 700 /etc/ssl/private
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048     -keyout /etc/ssl/private/nginx-selfsigned.key     -out /etc/ssl/certs/nginx-selfsigned.crt     -subj "/C=UA/ST=Vinnytsia/L=Vinnytsya/O=Test Organization/OU=IT Department/CN=localhost"
+sudo openssl dhparam -out /etc/nginx/dhparam.pem 2048
+sudo nano /etc/nginx/sites-available/default-ssl
+sudo rm /etc/nginx/sites-enabled/default
+sudo ln -s /etc/nginx/sites-available/default-ssl /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+sudo ufw allow 443/tcp
+curl -k -u user:pass https://localhost/
+curl -I http://localhost/
+echo | openssl s_client -connect localhost:443 2>/dev/null | openssl x509 -noout -text
+sudo apt install build-essential -y
+sudo apt install git -y
+dpkg -l | grep -E "(build-essential|libpcre3-dev|libssl-dev|zlib1g-dev)"
+mkdir -p ~/nginx-build
+cd ~/nginx-build
+NGINX_VERSION=$(nginx -v 2>&1 | grep -o '[0-9.]*')
+echo "Current nginx version: $NGINX_VERSION"
+wget http://nginx.org/download/nginx-1.24.0.tar.gz
+tar -xzf nginx-1.24.0.tar.gz
+git clone https://github.com/yaoweibin/nginx_upstream_check_module.git
+nginx -V 2>&1 | tr ' ' '\n' | grep -E '^--'
+nginx -V 2>&1 | grep -o 'configure arguments: .*' | sed 's/configure arguments: //' > current_config.txt
+cd nginx-1.24.0
+patch -p1 < ../nginx_upstream_check_module/check_1.20.1+.patch
+sudo apt install -y libpcre3-dev libssl-dev zlib1g-dev
+dpkg -l | grep libpcre3-dev
+sudo apt install -y     build-essential     libpcre3-dev     libssl-dev     zlib1g-dev     libgeoip-dev     libxml2-dev     libxslt1-dev     libgd-dev     git
+./configure     --prefix=/etc/nginx     --sbin-path=/usr/sbin/nginx     --modules-path=/usr/lib/nginx/modules     --conf-path=/etc/nginx/nginx.conf     --error-log-path=/var/log/nginx/error.log     --http-log-path=/var/log/nginx/access.log     --pid-path=/var/run/nginx.pid     --lock-path=/var/run/nginx.lock     --http-client-body-temp-path=/var/cache/nginx/client_temp     --http-proxy-temp-path=/var/cache/nginx/proxy_temp     --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp     --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp     --http-scgi-temp-path=/var/cache/nginx/scgi_temp     --user=www-data     --group=www-data     --with-compat     --with-file-aio     --with-threads     --with-http_addition_module     --with-http_auth_request_module     --with-http_dav_module     --with-http_flv_module     --with-http_gunzip_module     --with-http_gzip_static_module     --with-http_mp4_module     --with-http_random_index_module     --with-http_realip_module     --with-http_secure_link_module     --with-http_slice_module     --with-http_ssl_module     --with-http_stub_status_module     --with-http_sub_module     --with-http_v2_module     --with-mail     --with-mail_ssl_module     --with-stream     --with-stream_realip_module     --with-stream_ssl_module     --with-stream_ssl_preread_module     --add-module=../nginx_upstream_check_module
+make -j$(nproc)
+sudo systemctl stop nginx
+sudo cp /usr/sbin/nginx /usr/sbin/nginx.package.backup
+sudo cp objs/nginx /usr/sbin/nginx
+sudo chmod +x /usr/sbin/nginx
+nginx -V 2>&1 | grep upstream_check
+sudo nginx -t
+sudo systemctl start nginx
+sudo nginx -t
+sudo mkdir -p /var/cache/nginx/client_temp
+sudo mkdir -p /var/cache/nginx/proxy_temp
+sudo mkdir -p /var/cache/nginx/fastcgi_temp
+sudo mkdir -p /var/cache/nginx/uwsgi_temp
+sudo chown -R www-data:www-data /var/cache/nginx
+sudo chmod -R 755 /var/cache/nginx
+ls -la /var/cache/nginx/
+sudo nginx -t
+sudo systemctl start nginx
+sudo systemctl status nginx
+sudo nano /etc/nginx/conf.d/upstream-test.conf
+sudo ufw allow 8888/tcp
+curl http://localhost:8888/
+curl http://localhost:8888/upstream_check
