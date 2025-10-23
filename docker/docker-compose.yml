@@ -1,0 +1,95 @@
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: eschool-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass123}
+      MYSQL_DATABASE: ${DB_NAME:-eschool}
+      MYSQL_USER: ${DB_USER:-eschool}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-eschool123}
+      MYSQL_INITDB_SKIP_TZINFO: "yes"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    networks:
+      - eschool-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_ROOT_PASSWORD:-rootpass123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    command: --default-authentication-plugin=mysql_native_password --skip-ssl
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        APP_PORT: ${BACKEND_PORT:-8080}
+    container_name: eschool-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DATASOURCE_URL: jdbc:mysql://mysql:3306/${DB_NAME:-eschool}?useUnicode=true&characterEncoding=utf8
+      DATASOURCE_USERNAME: ${DB_USER:-eschool}
+      DATASOURCE_PASSWORD: ${DB_PASSWORD:-eschool123}
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-eschool}
+      DB_USER: ${DB_USER:-eschool}
+      DB_PASSWORD: ${DB_PASSWORD:-eschool123}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      JAVA_OPTS: ${JAVA_OPTS:--Xms256m -Xmx512m}
+    ports:
+      - "${BACKEND_PORT:-8080}:${BACKEND_PORT:-8080}"
+    networks:
+      - eschool-network
+    volumes:
+      - backend_logs:/opt/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-8080}/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NGINX_PORT: ${FRONTEND_PORT:-80}
+        BACKEND_URL: ${BACKEND_URL:-http://backend:${BACKEND_PORT:-8080}}
+    container_name: eschool-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NGINX_PORT: ${FRONTEND_PORT:-80}
+      BACKEND_URL: ${BACKEND_URL:-http://backend:${BACKEND_PORT:-8080}}
+    ports:
+      - "${FRONTEND_PORT:-80}:${FRONTEND_PORT:-80}"
+    networks:
+      - eschool-network
+    volumes:
+      - frontend_cache:/var/cache/nginx
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:${FRONTEND_PORT:-80}/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  eschool-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  backend_logs:
+  frontend_cache:

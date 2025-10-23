@@ -1,0 +1,53 @@
+# Stage 1: Build
+FROM maven:3.8.1-jdk-8-slim AS builder
+
+WORKDIR /build
+COPY pom.xml .
+COPY src ./src/
+
+RUN mvn dependency:resolve dependency:resolve-plugins
+
+RUN mvn clean package -DskipTests -q
+
+# Stage 2: Runtime
+FROM eclipse-temurin:8-jre-alpine
+
+
+ARG APP_PORT=8080
+ARG APP_HOME=/opt/app
+
+LABEL maintainer="devops@eschool.local"
+LABEL description="eSchool Backend Application"
+
+ENV APP_PORT=${APP_PORT}
+ENV APP_HOME=${APP_HOME}
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC"
+
+
+ENV DB_HOST=mysql
+ENV DB_PORT=3306
+ENV DB_NAME=eschool
+ENV DB_USER=eschool
+ENV DB_PASSWORD=""
+ENV LOG_LEVEL=INFO
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+WORKDIR ${APP_HOME}
+
+
+COPY --from=builder /build/target/eschool.jar app.jar
+
+
+RUN chown -R appuser:appgroup ${APP_HOME}
+
+USER appuser
+
+EXPOSE ${APP_PORT}
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD java -cp app.jar -Dloader.main=org.springframework.boot.health.HealthCheck \
+    org.springframework.boot.loader.JarLauncher || exit 1
+
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]
